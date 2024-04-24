@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 
 function Card() {
+  
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -15,6 +16,7 @@ function Card() {
       }
     });
   }, []);
+
   const handleSvgClick = (id) => {
     setCards((prevCards) =>
       prevCards.map((card) => {
@@ -25,6 +27,24 @@ function Card() {
       })
     );
   };
+
+  const deleteCard = (e, id) => {
+    e.preventDefault();
+
+    const thisClicked = e.currentTarget;
+    thisClicked.innerText = "Deleting...";
+    
+    axios
+    .delete(`http://127.0.0.1:8000/api/delete/${id}`)
+    .then((response) => {
+      console.log(response.data);
+      thisClicked.closest("div").remove();
+      })
+      .catch((error) => {
+        console.error("Error fetching card data:", error);
+        setLoading(false);
+      });
+  }
 
   if (loading) {
     return (
@@ -87,12 +107,12 @@ function Card() {
                       </Link>
                       <div>
                         <Link
-                          to="/"
+                          to={`UpdateCard/${card.id}`}
                           className="card-link text-decoration-none"
                         >
                           ✎
                         </Link>
-                        <Link to="/" className="card-link text-decoration-none">
+                        <Link to="/" onClick={(e)=>deleteCard(e, card.id) } className="card-link text-decoration-none">
                           ❌
                         </Link>
                       </div>

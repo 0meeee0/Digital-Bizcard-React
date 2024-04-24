@@ -1,32 +1,46 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useParams } from "react-router-dom";
 
-function AddCard() {
+function UpdateCard() {
+  const { id } = useParams();
   
   useEffect(() => {
-    document.body.style.background =
-      "linear-gradient(to right, #007bff, #00dbde)";
+    document.body.style.background = "linear-gradient(to right, #007bff, #00dbde)";
 
     return () => {
       document.body.style.backgroundColor = "";
     };
   }, []);
 
-  const [InputErrorList, setInputErrorList] = useState({})
-  const [Loading, setLoading] = useState(false)
-  const [card, setCard] = useState({
+  const [InputErrorList, setInputErrorList] = useState({});
+  const [Loading, setLoading] = useState(true); // Set loading to true initially
+  const [card, setCard] = useState({ // Initialize card state with an empty object
     name: "",
     company: "",
     title: "",
     coordinates: "",
   });
+
+  useEffect(() => {
+    axios.get(`http://127.0.0.1:8000/api/find/${id}`)
+      .then((response) => {
+        console.log(response.data);
+        setCard(response.data); // Set the card state with the received card object
+        setLoading(false); // Set loading to false after data is fetched
+      })
+      .catch((error) => {
+        console.error("Error fetching card data:", error);
+        setLoading(false); // Set loading to false on error
+      });
+  }, [id]);
   
   const handleInputs = (e) => {
     e.persist();
-    setCard({...card, [e.target.name]: e.target.value});
+    setCard({ ...card, [e.target.name]: e.target.value });
   }
 
-  const saveCard = (e) => {
+  const UpdateCard = (e) => {
     e.preventDefault();
     console.log("Saving card...");
     setLoading(true);
@@ -42,8 +56,7 @@ function AddCard() {
       title: card.title,
       coordinates: card.coordinates,
     };
-    axios
-      .post(`http://127.0.0.1:8000/api/store`, data, config)
+    axios.post(`http://127.0.0.1:8000/api/update/${id}`, data, config)
       .then((res) => {
         setLoading(false);
         alert(res.data.message);
@@ -58,14 +71,13 @@ function AddCard() {
       });
   };
 
-    if (Loading) {
-      return (
-        <div className="text-center">
-          <h1>Loading...</h1>
-        </div>
-      );
-    }
-
+  if (Loading) {
+    return (
+      <div className="text-center">
+        <h1>Loading...</h1>
+      </div>
+    );
+  }
   return (
     <div
       className="container"
@@ -85,13 +97,14 @@ function AddCard() {
           boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <h1 style={{ color: "#333" }}>Add a Card</h1>
-        <form onSubmit={saveCard}>
+        <h1 style={{ color: "#333" }}>Edit a Card</h1>
+        <form onSubmit={UpdateCard}>
           <div className="form-row d-flex justify-content-around">
             <div className="col-md-5">
               <div className="form-group" style={{ marginBottom: "20px" }}>
                 <label style={{ color: "#666" }}>Card Name</label>
                 <input
+                  value={card.name}
                   onChange={handleInputs}
                   name="name"
                   type="text"
@@ -106,6 +119,7 @@ function AddCard() {
               <div className="form-group" style={{ marginBottom: "20px" }}>
                 <label style={{ color: "#666" }}>Card Title</label>
                 <input
+                  value={card.title}
                   onChange={handleInputs}
                   name="title"
                   type="text"
@@ -122,6 +136,7 @@ function AddCard() {
               <div className="form-group" style={{ marginBottom: "20px" }}>
                 <label style={{ color: "#666" }}>Card Company</label>
                 <input
+                  value={card.company}
                   onChange={handleInputs}
                   name="company"
                   type="text"
@@ -136,6 +151,7 @@ function AddCard() {
               <div className="form-group" style={{ marginBottom: "20px" }}>
                 <label style={{ color: "#666" }}>Coordinates</label>
                 <input
+                  value={card.coordinates}
                   onChange={handleInputs}
                   name="coordinates"
                   type="text"
@@ -145,7 +161,9 @@ function AddCard() {
                     borderRadius: "5px",
                   }}
                 ></input>
-                <span className="text-danger">{InputErrorList.coordinates}</span>
+                <span className="text-danger">
+                  {InputErrorList.coordinates}
+                </span>
               </div>
             </div>
           </div>
@@ -154,7 +172,7 @@ function AddCard() {
             className="btn btn-outline-primary"
             style={{ marginTop: "20px" }}
           >
-            Submit
+            Update
           </button>
         </form>
       </div>
@@ -162,4 +180,4 @@ function AddCard() {
   );
 }
 
-export default AddCard;
+export default UpdateCard;
